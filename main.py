@@ -59,7 +59,6 @@ lastBits_characteristic = [ \
     b'\xb5\x60\xce\x6b\xe6\xe4\xc7\x72\xe6\x51\x7f\x59\x84\x94\xf1\x1f'
 ]
 
-
 startBits_characteristic = [ \
     b'\x8a\xc8\x6a\xe0\x7a\x14\x36\x22\x44\x37\xd4\xd2\xc1\xcf\x45\x03' , \
     b'\xc5\x25\xa8\xe8\x25\xa9\xf1\x3b\x6c\x5e\xe0\x0b\x48\xfa\x1d\x52'
@@ -71,9 +70,10 @@ connectBits_characteristic = [ \
     b'\xeb\xd3\x72\xed\x98\x85\x73\x17\xf2\xf5\x4c\xd2\x13\x0f\xdc\x9c'
 ]
 
-
-
-
+def sendCharacteristics1(the_characteristic):
+    for i in the_characteristic:
+        my_service.my_characteristic1 = i
+        time.sleep(.2)
 
 def sendNumberToHat(numberToSend, startBits, lastBits):
     if numberToSend >= 0 and numberToSend <= 9:
@@ -82,15 +82,11 @@ def sendNumberToHat(numberToSend, startBits, lastBits):
 
     #these bytes erase the screen
     if startBits == 1: #only have to write these values once at the beginning
-        for i in startBits_characteristic:
-            my_service.my_characteristic1 = i
-            time.sleep(.2)
+        sendCharacteristics1(startBits_characteristic)
 
     #these bytes scroll the message, turn the brightness to max, and turn up the speed
     if lastBits == 1: #write these values at the end
-        for i in lastBits_characteristic:
-            my_service.my_characteristic1 = i
-            time.sleep(.2)
+        sendCharacteristics1(lastBits_characteristic)
 
 def turnOff(): #tested, works, but not used
     my_service.my_characteristic1 = b'\xcb\xb1\xfd\xbf\xc5\x60\xd5\xe4\x53\xc2\xcb\xd9\x28\xb5\x3f\xab'
@@ -169,9 +165,8 @@ while True:
             print("while ble_connection")
             my_service = ble_connection[MyService]
             print("my_service = ble_connection[MyService]")
-            for i in connectBits_characteristic:
-                my_service.my_characteristic1 = i
-                time.sleep(.2)
+            sendCharacteristics1(connectBits_characteristic)
+
             currentTime = currentTime - 1
 
             (firstDigit, secondDigit2, thirdDigit2, forthDigit) = FourDigit(currentTime)
