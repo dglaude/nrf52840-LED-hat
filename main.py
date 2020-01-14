@@ -1,5 +1,3 @@
-### Attempt to reorganise the code and deal with disconnection possibilities.
-
 # This example adapted from ble_detailed_scan.py
 # If the correct peripherial is found, it writes a couple predefined characteristic values
 
@@ -117,7 +115,7 @@ def FourDigit(theTime):
 	
 def blinkForMinute():
 ###    for x in range(120):
-    for x in range(12):
+    for x in range(1):
         #print(x)
         led.value = True
         time.sleep(0.2)
@@ -184,11 +182,18 @@ while True:
             blinkForMinute()
             print("After blinkForMinute")
 
-    except RuntimeError as e:
-        print(e)  # Print what happened
+#    except RuntimeError as e:
+#        print(e)  # Print what happened
+#        ble_connection.disconnect()
+#        ble_connection = None
+#        continue  # retry!
+
+    except _bleio.ConnectionError:
+        print("disconnected")
         ble_connection.disconnect()
         ble_connection = None
-        continue  # retry!
+        continue
+#        break
 
 
 # Removed
