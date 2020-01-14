@@ -60,6 +60,21 @@ lastBits_characteristic = [ \
 ]
 
 
+startBits_characteristic = [ \
+    b'\x8a\xc8\x6a\xe0\x7a\x14\x36\x22\x44\x37\xd4\xd2\xc1\xcf\x45\x03' , \
+    b'\xc5\x25\xa8\xe8\x25\xa9\xf1\x3b\x6c\x5e\xe0\x0b\x48\xfa\x1d\x52'
+]
+
+connectBits_characteristic = [ \
+    b'\x3b\x3e\xb0\xf5\x95\x4b\xda\xbd\xe6\x10\x17\x4b\x52\xbf\xce\xcb' , \
+    b'\xe5\x62\x66\xe2\x55\x5b\xa2\xab\x92\xe7\x3f\x27\x0b\x27\x74\xb5' , \
+    b'\xeb\xd3\x72\xed\x98\x85\x73\x17\xf2\xf5\x4c\xd2\x13\x0f\xdc\x9c'
+]
+
+
+
+
+
 def sendNumberToHat(numberToSend, startBits, lastBits):
     if numberToSend >= 0 and numberToSend <= 9:
         my_service.my_characteristic2 = digit_characteristic[numberToSend]
@@ -67,24 +82,15 @@ def sendNumberToHat(numberToSend, startBits, lastBits):
 
     #these bytes erase the screen
     if startBits == 1: #only have to write these values once at the beginning
-        my_service.my_characteristic1 = b'\x8a\xc8\x6a\xe0\x7a\x14\x36\x22\x44\x37\xd4\xd2\xc1\xcf\x45\x03'
-        time.sleep(.2)
-        my_service.my_characteristic1 = b'\xc5\x25\xa8\xe8\x25\xa9\xf1\x3b\x6c\x5e\xe0\x0b\x48\xfa\x1d\x52' #
-        time.sleep(.2)
+        for i in startBits_characteristic:
+            my_service.my_characteristic1 = i
+            time.sleep(.2)
 
     #these bytes scroll the message, turn the brightness to max, and turn up the speed
     if lastBits == 1: #write these values at the end
         for i in lastBits_characteristic:
             my_service.my_characteristic1 = i
             time.sleep(.2)
-        my_service.my_characteristic1 = b'\x0a\xdb\xfd\xd9\xe8\x56\xe5\x4e\x61\xf3\xc9\xd3\x54\x52\xd5\xd0'
-        time.sleep(.2)
-        my_service.my_characteristic1 = b'\xeb\xd3\x72\xed\x98\x85\x73\x17\xf2\xf5\x4c\xd2\x13\x0f\xdc\x9c'
-        time.sleep(.2)
-        my_service.my_characteristic1 = b'\x1a\x7a\x2a\x59\x17\xb4\x93\x48\x34\xe5\xde\x2e\xd2\x7c\x6d\x6b'
-        time.sleep(.2)
-        my_service.my_characteristic1 = b'\xb5\x60\xce\x6b\xe6\xe4\xc7\x72\xe6\x51\x7f\x59\x84\x94\xf1\x1f'
-        time.sleep(.2)
 
 def turnOff(): #tested, works, but not used
     my_service.my_characteristic1 = b'\xcb\xb1\xfd\xbf\xc5\x60\xd5\xe4\x53\xc2\xcb\xd9\x28\xb5\x3f\xab'
@@ -162,47 +168,36 @@ while True:
         while ble_connection:  # Check our connection status every 3 seconds
             print("while ble_connection")
             my_service = ble_connection[MyService]
-            print("my_service = ble_connection[MyService]")			
-            #my_service.my_characteristic1 = b'\x3b\x3e\xb0\xf5\x95\x4b\xda\xbd\xe6\x10\x17\x4b\x52\xbf\xce\xcb' # clears screen
-            time.sleep(.2)
-            my_service.my_characteristic1 = b'\xe5\x62\x66\xe2\x55\x5b\xa2\xab\x92\xe7\x3f\x27\x0b\x27\x74\xb5' # encoded as bytes
-            time.sleep(.2)
-            my_service.my_characteristic1 = b'\xeb\xd3\x72\xed\x98\x85\x73\x17\xf2\xf5\x4c\xd2\x13\x0f\xdc\x9c'
-            time.sleep(.2)
+            print("my_service = ble_connection[MyService]")
+            for i in connectBits_characteristic:
+                my_service.my_characteristic1 = i
+                time.sleep(.2)
             currentTime = currentTime - 1
 
             (firstDigit, secondDigit2, thirdDigit2, forthDigit) = FourDigit(currentTime)
-			
+
             sendNumberToHat(firstDigit, 1, 0)
             sendNumberToHat(secondDigit2, 0, 0)
             sendNumberToHat(thirdDigit2, 0, 0)
-            sendNumberToHat(forthDigit, 0, 0)
-#            sendNumberToHat(forthDigit, 0, 1)
+            sendNumberToHat(forthDigit, 0, 1)
 			
-            blinkForMinute()
+            blinkForMinute()                  # Not a minute anymore... fast count down.
             print("After blinkForMinute")
-
-#    except RuntimeError as e:
-#        print(e)  # Print what happened
-#        ble_connection.disconnect()
-#        ble_connection = None
-#        continue  # retry!
 
     except _bleio.ConnectionError:
         print("disconnected")
         ble_connection.disconnect()
         ble_connection = None
         continue
-#        break
+    except RuntimeError as e:
+        print(e)                           # Print what happened
+        continue
 
 
 # Removed
 
-            #turnOff()
-            #turnOn()
-            #ble_connection.disconnect()
-            #ble_connection = None
-            #myService = None
-            #ble.stop_scan()
-            #time.sleep(60)
-            #break
+#turnOff()
+#turnOn()
+#myService = None
+#ble.stop_scan()
+#break
